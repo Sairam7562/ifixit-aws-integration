@@ -1,0 +1,16 @@
+# Environment variables and credentials
+.env
+
+# Logs and checkpoint files
+*.log
+fetch_checkpoint.pkl
+fetch_stats.json
+
+# Python virtual environment
+venv/
+__pycache__/
+*.pyc
+
+# Process ID files
+*.pid
+
