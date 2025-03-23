@@ -25,6 +25,23 @@ tables = [
     )
     """,
     """
+    CREATE TABLE IF NOT EXISTS categories (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        display_title VARCHAR(255),
+        category_path TEXT,
+        parent_id INTEGER REFERENCES categories(id) NULL,
+        wikiid INTEGER,
+        namespace VARCHAR(50),
+        summary TEXT,
+        image_url TEXT,
+        raw_data JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(title, parent_id)
+    )
+    """,
+    """
     CREATE TABLE IF NOT EXISTS guides (
         id SERIAL PRIMARY KEY,
         source_id INTEGER REFERENCES sources(id),
@@ -35,6 +52,12 @@ tables = [
         difficulty VARCHAR(50),
         category VARCHAR(255),
         locale VARCHAR(10),
+        category_id INTEGER REFERENCES categories(id) NULL,
+        image_id INTEGER,
+        flags JSONB,
+        summary TEXT,
+        public BOOLEAN DEFAULT TRUE,
+        modified_date BIGINT,
         raw_data JSONB,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -82,6 +105,38 @@ tables = [
         guide_id INTEGER REFERENCES guides(id),
         tag_id INTEGER REFERENCES tags(id),
         PRIMARY KEY (guide_id, tag_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS wiki_tags (
+        wiki_id INTEGER,
+        tag_id INTEGER REFERENCES tags(id),
+        PRIMARY KEY (wiki_id, tag_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
+        itemcode VARCHAR(255) UNIQUE NOT NULL,
+        productcode VARCHAR(255),
+        title VARCHAR(255),
+        raw_data JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS product_guides (
+        product_id INTEGER REFERENCES products(id),
+        guide_id INTEGER REFERENCES guides(id),
+        PRIMARY KEY (product_id, guide_id)
+    )
+    """,
+    """
+    CREATE TABLE IF NOT EXISTS product_wikis (
+        product_id INTEGER REFERENCES products(id),
+        wiki_id INTEGER,
+        PRIMARY KEY (product_id, wiki_id)
     )
     """
 ]

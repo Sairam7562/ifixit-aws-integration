@@ -1,0 +1,138 @@
+# Enhanced iFixit Guide Integration
+
+This project fetches repair guides, categories, wikis, and product information from the iFixit API, stores them in AWS S3 and RDS PostgreSQL, and provides a comprehensive API to access the data.
+
+## Architecture
+
+- **EC2 Instance**: Runs the data fetcher and API server
+- **S3 Buckets**: 
+  - Raw data bucket: Stores original API responses
+  - Media bucket: Stores guide images and other media
+  - Processed data bucket: For future use (data analytics, etc.)
+- **RDS PostgreSQL**: Stores structured guide data, categories, tags, and product information
+- **API Server**: Provides access to the stored data
+- **Web Server**: Simple HTTP server to access the frontend
+
+## Components
+
+- `enhanced_db_setup.py`: Sets up the enhanced database schema
+- `enhanced_ifixit_fetcher.py`: Fetches data from all supported iFixit API endpoints
+- `enhanced_api_server.py`: Provides a comprehensive API to access the data
+- `enhanced_run.sh`: Sets up and runs everything
+- `enhanced_monitor.sh`: Monitors the system status
+- `backup.sh`: Creates backups
+- `index.html`: Simple frontend for viewing guides
+
+## Database Schema
+
+- **sources**: Information about data sources (currently just iFixit)
+- **categories**: Hierarchical category structure from iFixit
+- **guides**: Repair guides
+- **steps**: Individual steps within guides
+- **media**: Images and other media files
+- **tags**: Tags that can be applied to guides and wikis
+- **guide_tags**: Many-to-many relationship between guides and tags
+- **wiki_tags**: Many-to-many relationship between wikis and tags
+- **products**: Product information
+- **product_guides**: Many-to-many relationship between products and guides
+- **product_wikis**: Many-to-many relationship between products and wikis
+
+## API Endpoints
+
+- `/api/guides`: List all guides with pagination
+  - Query parameters:
+    - `limit`: Number of guides to return (default: 20, max: 100)
+    - `offset`: Number of guides to skip (default: 0)
+    - `category`: Filter by category
+    - `tag`: Filter by tag
+    - `search`: Full-text search on guide titles and summaries
+- `/api/guides/{guide_id}`: Get details for a specific guide
+- `/api/categories`: List all categories
+  - Query parameters:
+    - `parent_id`: Filter by parent category ID (optional)
+- `/api/categories/{title}`: Get details for a specific category
+- `/api/products`: List all products
+  - Query parameters:
+    - `limit`: Number of products to return (default: 20, max: 100)
+    - `offset`: Number of products to skip (default: 0)
+- `/api/products/{itemcode}`: Get details for a specific product
+- `/api/tags`: List all tags
+  - Query parameters:
+    - `limit`: Number of tags to return (default: 100, max: 500)
+    - `offset`: Number of tags to skip (default: 0)
+    - `sort`: Sort order, either "name" or "popularity" (default: "name")
+- `/api/search`: Search across all content
+  - Query parameters:
+    - `q`: Search query (required)
+    - `limit`: Maximum number of results to return (default: 20, max: 100)
+- `/api/stats`: Get system statistics
+
+## Setup Instructions
+
+1. Create AWS resources (EC2, S3, RDS)
+2. SSH into the EC2 instance
+3. Clone this repository
+4. Configure `.env` file with credentials:
+   ```
+   DB_NAME=ifixit_db
+   DB_USER=your_db_user
+   DB_PASSWORD=your_db_password
+   DB_HOST=your-db-instance.rds.amazonaws.com
+   DB_PORT=5432
+   RAW_BUCKET=your-raw-bucket-name
+   MEDIA_BUCKET=your-media-bucket-name
+   PROCESSED_BUCKET=your-processed-bucket-name
+   ```
+5. Run `./enhanced_run.sh` to set up and start the system
+6. Run `./crontab_setup.sh` to schedule daily updates
+
+## Maintenance
+
+- Run `./enhanced_monitor.sh` to check system status
+- Run `./backup.sh` to create backups
+- Check logs in the `logs` directory
+
+## API Usage Examples
+
+### List Guides
+
+```
+GET /api/guides?limit=10&offset=0&category=iPhone
+```
+
+### Search for Content
+
+```
+GET /api/search?q=battery+replacement
+```
+
+### Get Category Details with Subcategories
+
+```
+GET /api/categories/iPhone
+```
+
+### Get Product Information
+
+```
+GET /api/products/180004
+```
+
+## iFixit API Integration
+
+This system integrates with the following iFixit API endpoints:
+
+- `/guides` - List guides
+- `/guides/{id}` - Get guide details
+- `/guides/{id}/tags` - Get guide tags
+- `/categories` - Get category hierarchy
+- `/wikis/{namespace}` - List wikis
+- `/wikis/{namespace}/{title}` - Get wiki details
+- `/wikis/{namespace}/{title}/tags` - Get wiki tags
+- `/cart/product/{itemcode}/{langid}` - Get product information
+- `/suggest/{query}` - Get search suggestions
+- `/tags` - List all tags
+
+## License
+
+This project is for educational purposes only. All data belongs to iFixit. Please respect iFixit's API usage terms and conditions.
